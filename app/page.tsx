@@ -18,7 +18,7 @@ const supabase = {
     Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
   }),
 
-  from: (table) => {
+  from: (table: string) => {
     const state = {
       _table: table,
       _filters: [],
