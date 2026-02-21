@@ -33,7 +33,7 @@ const supabase = {
       select(cols = "*") { state._selectCols = cols; return builder; },
       eq(col, val) { state._filters.push(`${col}=eq.${encodeURIComponent(val)}`); return builder; },
       order(col, { ascending = true } = {}) { state._orderCol = col; state._orderAsc = ascending; return builder; },
-      limit(n) { state._limitN = n; return builder; },
+      limit(n: number) { state._limitN = n; return builder; },
       single() { state._singleRow = true; return builder; },
 
       async _fetch() {
