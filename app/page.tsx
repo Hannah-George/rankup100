@@ -31,18 +31,35 @@ const supabase = {
     };
 
     const builder = {
-      select(cols = "*") { state._selectCols = cols; return builder; },
-      eq(col, val) { state._filters.push(`${col}=eq.${encodeURIComponent(val)}`); return builder; },
-      order(
-  col: string, 
-  { ascending = true }: { ascending?: boolean } = {}
-) {
-  state._orderCol = col;
-  state._orderAsc = ascending;
-  return builder;
-}, { state._orderCol = col; state._orderAsc = ascending; return builder; },
-      limit(n: number) { state._limitN = n; return builder; },
-      single() { state._singleRow = true; return builder; },
+  select(cols: string = "*") {
+    state._selectCols = cols;
+    return builder;
+  },
+
+  eq(col: string, val: string | number | boolean) {
+    state._filters.push(`${col}=eq.${encodeURIComponent(String(val))}`);
+    return builder;
+  },
+
+  order(
+    col: string,
+    { ascending = true }: { ascending?: boolean } = {}
+  ) {
+    state._orderCol = col;
+    state._orderAsc = ascending;
+    return builder;
+  },
+
+  limit(n: number) {
+    state._limitN = n;
+    return builder;
+  },
+
+  single() {
+    state._singleRow = true;
+    return builder;
+  },
+};
 
       async _fetch() {
         let url = `${SUPABASE_URL}/rest/v1/${state._table}?select=${encodeURIComponent(state._selectCols)}`;
