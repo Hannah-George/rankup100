@@ -19,89 +19,135 @@ const supabase = {
     Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
   }),
 
-  from: (table: string) => {
-    const state = {
-      _table: table,
-      _filters: [],
-      _selectCols: "*",
-      _orderCol: null,
-      _orderAsc: true,
-      _limitN: null,
-      _singleRow: false,
-    };
+from: (table: string) => {
+  const state = {
+    _table: table,
+    _filters: [] as string[],
+    _selectCols: "*",
+    _orderCol: null as string | null,
+    _orderAsc: true,
+    _limitN: null as number | null,
+    _singleRow: false,
+  };
 
-    const builder = {
-  select(cols: string = "*") {
-    state._selectCols = cols;
-    return builder;
-  },
+  const builder = {
+    select(cols: string = "*") {
+      state._selectCols = cols;
+      return builder;
+    },
 
-  eq(col: string, val: string | number | boolean) {
-    state._filters.push(`${col}=eq.${encodeURIComponent(String(val))}`);
-    return builder;
-  },
+    eq(col: string, val: string | number | boolean) {
+      state._filters.push(
+        `${col}=eq.${encodeURIComponent(String(val))}`
+      );
+      return builder;
+    },
 
-  order(
-    col: string,
-    { ascending = true }: { ascending?: boolean } = {}
-  ) {
-    state._orderCol = col;
-    state._orderAsc = ascending;
-    return builder;
-  },
+    order(
+      col: string,
+      { ascending = true }: { ascending?: boolean } = {}
+    ) {
+      state._orderCol = col;
+      state._orderAsc = ascending;
+      return builder;
+    },
 
-  limit(n: number) {
-    state._limitN = n;
-    return builder;
-  },
+    limit(n: number) {
+      state._limitN = n;
+      return builder;
+    },
 
-  single() {
-    state._singleRow = true;
-    return builder;
-  },
-};
+    single() {
+      state._singleRow = true;
+      return builder;
+    },
 
-      async _fetch() {
-        let url = `${SUPABASE_URL}/rest/v1/${state._table}?select=${encodeURIComponent(state._selectCols)}`;
-        if (state._filters.length) url += "&" + state._filters.join("&");
-        if (state._orderCol) url += `&order=${state._orderCol}.${state._orderAsc ? "asc" : "desc"}`;
-        if (state._limitN) url += `&limit=${state._limitN}`;
-        if (state._singleRow) url += "&limit=1";
-        const res = await fetch(url, { headers: supabase._headers() });
-        const json = await res.json();
-        if (!res.ok) return { data: null, error: json };
-        const d = state._singleRow ? (Array.isArray(json) ? json[0] || null : json) : json;
-        return { data: d, error: null };
-      },
+    async _fetch() {
+      let url = `${SUPABASE_URL}/rest/v1/${state._table}?select=${encodeURIComponent(
+        state._selectCols
+      )}`;
 
-      then(resolve, reject) { return builder._fetch().then(resolve, reject); },
+      if (state._filters.length)
+        url += "&" + state._filters.join("&");
 
-      async insert(rows) {
-        const url = `${SUPABASE_URL}/rest/v1/${state._table}`;
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { ...supabase._headers(), Prefer: "return=representation" },
-          body: JSON.stringify(rows),
-        });
-        const json = await res.json();
-        return { data: res.ok ? json : null, error: res.ok ? null : json };
-      },
+      if (state._orderCol)
+        url += `&order=${state._orderCol}.${
+          state._orderAsc ? "asc" : "desc"
+        }`;
 
-      async update(vals) {
-        let url = `${SUPABASE_URL}/rest/v1/${state._table}?`;
-        if (state._filters.length) url += state._filters.join("&");
-        const res = await fetch(url, {
-          method: "PATCH",
-          headers: { ...supabase._headers(), Prefer: "return=representation" },
-          body: JSON.stringify(vals),
-        });
-        const json = await res.json();
-        return { data: res.ok ? json : null, error: res.ok ? null : json };
-      },
-    };
+      if (state._limitN)
+        url += `&limit=${state._limitN}`;
 
-    return builder;
-  },
+      if (state._singleRow)
+        url += "&limit=1";
+
+      const res = await fetch(url, {
+        headers: supabase._headers(),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) return { data: null, error: json };
+
+      const d = state._singleRow
+        ? Array.isArray(json)
+          ? json[0] || null
+          : json
+        : json;
+
+      return { data: d, error: null };
+    },
+
+    then(resolve: any, reject: any) {
+      return builder._fetch().then(resolve, reject);
+    },
+
+    async insert(rows: any) {
+      const url = `${SUPABASE_URL}/rest/v1/${state._table}`;
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          ...supabase._headers(),
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify(rows),
+      });
+
+      const json = await res.json();
+
+      return {
+        data: res.ok ? json : null,
+        error: res.ok ? null : json,
+      };
+    },
+
+    async update(vals: any) {
+      let url = `${SUPABASE_URL}/rest/v1/${state._table}?`;
+
+      if (state._filters.length)
+        url += state._filters.join("&");
+
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          ...supabase._headers(),
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify(vals),
+      });
+
+      const json = await res.json();
+
+      return {
+        data: res.ok ? json : null,
+        error: res.ok ? null : json,
+      };
+    },
+  };
+
+  return builder;
+},
 };
 
 /* ╔══════════════════════════════════════════════════════════════╗
